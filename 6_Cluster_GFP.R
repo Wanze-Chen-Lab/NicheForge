@@ -3,11 +3,7 @@ library(tidyverse)
 library(cluster)
 library(ggridges)
 library(viridis)
-library(dplyr)
 library(scales) 
-library(tidyr)
-library(purrr)
-library(tibble)
 
 setwd("D:/file/2TF")
 data <- read_csv("2TF_combined_area_mean_data_results_remove_block.csv") %>%
@@ -33,7 +29,6 @@ centroids <- plot_data %>%
   summarise(Mean_Area_mean_106 = mean(Area_mean_106_log), .groups = "drop")
 
 
-
 df <- plot_data
 df$Time <- factor(df$Time, levels = c(0, 1, 2))
 
@@ -57,7 +52,7 @@ df_plot <- df_with_mean %>%
   arrange(color_score)  
 
 
-ggplot(df_plot, aes(x = as.factor(Time), y = Area_mean_106_log, group = data_number)) +  # 将Time转为因子
+ggplot(df_plot, aes(x = as.factor(Time), y = Area_mean_106_log, group = data_number)) +  
   
 
   geom_line(aes(color = color_score, alpha = color_score)) +
@@ -69,11 +64,9 @@ ggplot(df_plot, aes(x = as.factor(Time), y = Area_mean_106_log, group = data_num
     aes(group = Cluster), 
     linewidth = 0.3,  
     color = "black"
-  ) +
-  
+  ) +  
 
-  facet_wrap(~ Cluster, ncol = 1) +
-  
+  facet_wrap(~ Cluster, ncol = 1) +  
 
   scale_color_gradientn(
     colours = c("#FFFFCC", "#D9F0A3", "#ADDD8E", "#78C679", "#41AB5D", "#238443", "#006837", "#00441B"),
@@ -85,15 +78,12 @@ ggplot(df_plot, aes(x = as.factor(Time), y = Area_mean_106_log, group = data_num
       title.position = "top",
       title.hjust = 0.5
     )
-  ) +
-  
+  ) +  
 
   scale_alpha_continuous(
     range = c(0.3, 0.9),  
     guide = "none"
-  ) +
-  
-  
+  ) +   
 
   scale_x_discrete(
     name = "Time Point",
@@ -103,10 +93,9 @@ ggplot(df_plot, aes(x = as.factor(Time), y = Area_mean_106_log, group = data_num
   ) +
   
   scale_y_continuous(
-    name = "Cell number score",
+    name = "Cell number score (log2 scaled)",
     expand = c(0.02, 0.02)
-  ) +
-  
+  ) +  
 
   labs(
     title = "Cluster Expression Trends",
@@ -133,11 +122,8 @@ ggsave(
   dpi = 600 
 )
 
-
 ggsave("clusters_GFP_Area_mean.pdf",  device = "pdf", 
        width = 12 , height = 12)
-
-
 
 rawdata <- read.csv("./2TF_combined_area_mean_data_results_remove_block.csv")
 rownames(rawdata) <- rawdata$data_number
