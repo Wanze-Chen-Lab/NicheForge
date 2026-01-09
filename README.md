@@ -101,7 +101,6 @@ Run script: `5_Area_mean.R`
 
 ## File Structure
 *   `macros/`: Contains all .ijm scripts.
-*   `R_scripts/`: Contains all .R analysis scripts.
 
 ## Usage Note
 Please ensure file paths in the scripts are updated to match your local directory structure before running.
