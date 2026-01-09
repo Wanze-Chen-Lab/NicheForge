@@ -1,37 +1,7 @@
 // macro for microwell quantification
-//Wanze Chen, Chen-lab
-
-//Version 1.5 Beta1, 20250305
-	// refine the microwell detection, using "default" threldhold
-	// all measured channels are autothresholded, note that the threshold may variable per image
-
-
-//Version 1.4 Beta2, 20250218
-	//fix the bug of ROI recognition by setting the the circularity of paritcle in ROI regnization as a variable = hough_threshold - 0.2
-
-//Version 1.4 Beta1, 20250217
-	//invert the image (brightfield), which makes the circle identificaiton more robust both Operetta and Tie2 images
-	
-
-//Version 1.3 beta2, 20250214
-	//compatible with maximal 5 channels; 
-	//expand the option to background substraction to any channel (usually in channels with weak signal);
-
-//Version 1.3 beta1, 20250212
-	//process the images in batch (all the images in one folder at once)
-	//improve the log output
-	//include the option to flip the images
-	//fix a bug in Result file
-
-//Version 1.2, 20250206
-	//improve some log information and notice the possibility to process two images together
-
-//Version 1.1, 20250206
-	//increase options to specify which channel is BF and which channel to backgroud-substraction
 
 //require:
-// update the BIG-EPFL, PTBIOP, UCB Vision site and ImageScience
- 
+// update the BIG-EPFL, PTBIOP, UCB Vision site and ImageScience 
 
 // >>>>>>>>> Important Note <<<<<<<<<<<<< //
 //if computer resource is sufficient, two FIJI/ImageJ can be run in parallel.
