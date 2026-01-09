@@ -1,41 +1,112 @@
 # SynNiche
 Codes for the SynNiche project
 
-## 0. Raw image data
+# Microwell-Rule-Based-Quantification
 
-## 1. Microwell Detection and Quantification
+This repository contains an automated image processing and data analysis pipeline for high-content screening of microwells. The workflow integrates **Fiji (ImageJ)** macros for image stitching, registration, and fluorescence quantification, followed by **R** scripts for data merging, quality control, and time-series clustering.
 
-### 1.1. Raw Image Acquisition
-High-content imaging was performed using the Opera Phenix™ Plus High-Content Screening System (PerkinElmer). Each well was imaged in tile scan mode, covering a 19 × 19 grid (361 fields of view per well) with a 10× air objective. Multichannel fluorescence and brightfield images (brightfield, EGFP, mCherry) were acquired. Image stitching and subsequent processing were conducted using the open-source platform Fiji (ImageJ v1.54p).
+## Overview
 
-### 1.2. Large image stitching
-Raw image tiles were initially stitched using the “BIOP Operetta Importer” plugin, which assembled all fields into a single composite image per well while preserving all channels.
+The pipeline is designed to process time-series images (Brightfield, EGFP, mCherry) acquired from the **Opera Phenix™ Plus High-Content Screening System**.
 
-### 1.3. Image Pre-processing
-Bleed-through correction was applied to reduce EGFP fluorescence spillover into the mCherry channel, particularly important given the strong EGFP and relatively weak mCherry signals. Microwell fluorescence intensity was detected using the “1_macro_for_microwell_quantification_1.ijm” script. Key parameters included BF_channel selection, background channel exclusion (EGFP, mCherry), Hough_threshold = 0.65, Rolling_size = 20, and Threshold_background = 78. The correction coefficient, calculated based on microwells with only EGFP-expressing cells, was used to correct EGFP bleed-through in the mCherry channel.
+**Key features:**
+*   Stitching of tiled scans using the BIOP Operetta Importer plugin.
+*   Fluorescence bleed-through correction (EGFP to mCherry).
+*   Time-series hyperstack alignment (Image Registration).
+*   K-means clustering of cell expansion dynamics.
 
-### 1.4. Bleed-through Correction
-The EGFP bleed-through into the mCherry channel was corrected using the “2_bleedthrough.ijm” script. The correction coefficients used are documented in the “image_metadata.xlsx” file.
+## Prerequisites
 
-### 1.5. Hyperstack Alignment
-Images from three time points were aligned to establish consistent ROIs for each microwell using “3_hyperstackreg.ijm”. Fluorescence intensities within these ROIs were quantified over time using “4_macro_for_microwell_quantification_2.ijm”.
+### Software
+*   **Fiji (ImageJ)** (v1.54p)
+    *   *Download:* https://imagej.net/software/fiji/downloads
+*   **R** (v4.5.0) & **RStudio**
+    *   *Download:* https://cran.r-project.org/
 
-### 1.6. File Merging
-Files were merged according to the EGFP and mCherry channels using “5_Area_mean.R”. Microwells with significant debris (green fluorescence area >3,500) on Day 0 were excluded. A cell expansion score was calculated as the product of area and mean fluorescence value within each ROI for each channel, scaled by 1/10,000,000. Approximately 20% of microwells were classified as empty (expansion score for mCherry on Day 0 < 0.001).
+### Fiji Dependencies
+To ensure all macros run correctly (especially `HyperStackReg` and Stitching), you must enable the following **Update Sites** in Fiji:
 
-### 1.7. EGFP-based Clustering：
-Microwells were grouped into two clusters based on EGFP fluorescence dynamics using “6_Cluster_GFP.R”. Color and transparency keys were applied to visualize the proximity of each data point to the cluster centroid, representing the degree of deviation.
+1.  Open Fiji.
+2.  Go to `Help` > `Update...`
+3.  Click `Manage update sites`.
+4.  Check the boxes for the following sites:
+    *   **BIG-EPFL**
+    *   **PTBIOP**
+    *   **UCB Vision site**
+    *   **ImageScience**
+    *   **Bio-Formats**
+    *   **IJPB-plugins**
+5.  Click `Close` and then `Apply changes`.
+6.  Restart Fiji.
 
-### 1.8. mCherry-based Clustering
-Within Group 2 (Cluster B), microwells were further subdivided into three clusters based on mCherry fluorescence dynamics using “7_Cluster_mCherry.R”.
+*   **Key Plugins used:** [BIOP Operetta Importer](https://github.com/BIOP/ijp-operetta-importer), [HyperStackReg](https://github.com/ved-sharma/HyperStackReg).
 
-## 2. Protocols for Bulk RNA sequence data analysis
+### R Package Dependencies  
+- **R Packages:** `tidyverse`(includes ggplot2), `cluster`, `viridis`, `ggridges`, `scales`.
 
-### 2.1. Raw_sequencing data
-The raw bulk RNA-seq data (FASTQ files) are publicly available in the ArrayExpress database:
+---
 
-B16-OVA cell expressing transcription factors data: Accession [E-MTAB-15290] (https://www.ebi.ac.uk/biostudies/ArrayExpress/studies/E-MTAB-15356?key=32fe823a-ff57-4cb9-add0-4b75dcfd54ba).
+## Pipeline Workflow
 
-C3H10T1/2 cells expressing transcription factors: Accession [E-MTAB-15356] (https://www.ebi.ac.uk/biostudies/ArrayExpress/studies/E-MTAB-15356?key=32fe823a-ff57-4cb9-add0-4b75dcfd54ba).
+### 1. Raw Image Acquisition & Stitching
+**Input:** Raw image tiles (19x19 grid, 10x objective).  
+**Tool:** Fiji (BIOP Operetta Importer)
 
-### 2.2. Preprocessing of Bulk RNA seq data
+Raw image tiles are stitched using the **BIOP Operetta Importer** plugin. This step assembles all fields of view into a single composite image per well while preserving channel information (Brightfield, EGFP, mCherry).
+
+### 2. Bleed-through Correction
+**Goal:** Correct EGFP signal spillover into the mCherry channel.
+
+*   **Step 2a: Intensity Detection**  
+    Run script: `1_macro_for_microwell_quantification_1.ijm`  
+    This script detects microwells and measures raw fluorescence intensities.
+    *   **Key Parameters:**
+        *   `Hough_threshold`: 0.65
+        *   `Rolling_size`: 20
+        *   `Threshold_background`: 78
+        *   Background channels excluded: EGFP, mCherry
+
+*   **Step 2b: Correction Application**  
+    Run script: `2_bleedthrough.ijm`  
+    Based on correction coefficients calculated from EGFP-only controls, this script mathematically subtracts the spillover signal from the mCherry channel.
+
+### 3. Hyperstack Alignment & Quantification
+**Goal:** Align time-series images to fix ROI positions and quantify signals over time.
+
+*   **Step 3a: Registration**  
+    Run script: `3_hyperstackreg.ijm`  
+    Images from three time points (e.g., Day 0, 3, 6) are aligned (registered) to establish consistent ROIs for each microwell across the timeline.
+
+*   **Step 3b: Time-series Quantification**  
+    Run script: `4_macro_for_microwell_quantification_2.ijm`  
+    Extracts fluorescence intensity and area data from the aligned ROIs.
+
+### 4. Data Processing & Filtering (R)
+**Goal:** Merge data, filter debris, and calculate scores.  
+Run script: `5_Area_mean.R`
+
+*   **Merging:** Files are merged based on EGFP and mCherry channels.
+*   **Debris Filtering:** Microwells with significant debris on Day 0 (Green Area > 3,500) are excluded.
+*   **Empty Well Exclusion:** Wells with a Day 0 mCherry score < 0.001 are classified as empty (~20% of wells, consistent with Poisson distribution λ = 1.5).
+*   **Scoring:** A "Cell Expansion Score" is calculated as:
+    $$ \text{Score} = (\text{Area} \times \text{Mean Intensity}) \times 10^{-6} $$
+
+### 5. Time-Series Clustering
+**Goal:** Group microwells based on growth kinetics.
+
+*   **Step 5a: EGFP Clustering**  
+    Run script: `6_Cluster_GFP.R`  
+    Classifies microwells into **Cluster A** and **Cluster B** (K=2) based on EGFP dynamics. Visualization includes color/transparency gradients representing residual proximity (deviation from centroid).
+
+*   **Step 5b: mCherry Clustering**  
+    Run script: `7_Cluster_mCherry.R`  
+    Further subdivides Cluster B into **3 sub-clusters** based on mCherry dynamics.
+
+---
+
+## File Structure
+*   `macros/`: Contains all .ijm scripts.
+*   `R_scripts/`: Contains all .R analysis scripts.
+
+## Usage Note
+Please ensure file paths in the scripts are updated to match your local directory structure before running.
