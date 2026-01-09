@@ -1,4 +1,3 @@
-
 library(viridisLite)
 library(tidyverse)
 library(cluster)
@@ -32,13 +31,6 @@ plot_data$Area_mean_106_log <- log2(plot_data$Area_mean_106+1)
 centroids <- plot_data %>%
   group_by(Cluster, Time) %>%
   summarise(Mean_Area_mean_106 = mean(Area_mean_106_log), .groups = "drop")
-
-
-
-library(dplyr)
-library(tidyr)
-library(purrr)
-library(tibble)
 
 
 df <- plot_data
@@ -162,5 +154,6 @@ cluster_stats <- data %>%
 
 print(cluster_stats)
 write_csv(cluster_stats, "2TF_combined_area_mean_data_results_remove_block_clusterB_cluster_statistics.csv")
+
 
 
