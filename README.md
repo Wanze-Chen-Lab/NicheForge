@@ -1,5 +1,5 @@
-# NicheXplorer
-Codes for the NicheXplorer project
+# SynNiche
+Codes for the SynNiche project
 
 ## 0. Raw image data
 
