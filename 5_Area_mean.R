@@ -1,15 +1,11 @@
 library(tidyverse)
 library(stringr)
-#library(cluster)
 library(ggridges)
 library(viridis)
-
-
 
 setwd("D:/file/2TF")
 
 file_list <- list.files(pattern = "\\.csv$", full.names = TRUE)
-
 
 time_files <- list(
   Time_0 = file_list[str_detect(file_list, "Time_0")],
@@ -52,13 +48,6 @@ walk2(time_files, names(time_files),
 
 walk2(time_files, names(time_files), 
       ~process_time_group(.x, .y, ":3", "mCherry"))
-
-
-
-
-library(tidyverse)
-library(stringr)
-setwd("D:/file/2TF")
 
 markers <- c("GFP", "mCherry")
 time_points <- c("Time_0", "Time_1", "Time_2")
@@ -110,10 +99,7 @@ combined_data <- map_dfr(file_paths$path, ~{
 
 write_csv(combined_data, "combined_area_mean_data.csv")
 
-
-
 data <- read_csv("combined_area_mean_data.csv")
-
 
 safe_multiply <- function(area, mean_val) {
   if_else(is.na(mean_val), area * 0, area * mean_val)
