@@ -20,8 +20,6 @@ The pipeline is designed to process time-series images (Brightfield, EGFP, mCher
 ### Software
 *   **Fiji (ImageJ)** (v1.54p)
     *   *Download:* https://imagej.net/software/fiji/downloads
-*   **R** (v4.5.0) & **RStudio**
-    *   *Download:* https://cran.r-project.org/
 
 ### Fiji Dependencies
 To ensure all macros run correctly (especially `HyperStackReg` and Stitching), you must enable the following **Update Sites** in Fiji:
@@ -40,9 +38,6 @@ To ensure all macros run correctly (especially `HyperStackReg` and Stitching), y
 6.  Restart Fiji.
 
 *   **Key Plugins used:** [BIOP Operetta Importer](https://github.com/BIOP/ijp-operetta-importer), [HyperStackReg](https://github.com/ved-sharma/HyperStackReg).
-
-### R Package Dependencies  
-- **R Packages:** `tidyverse`(includes ggplot2), `cluster`, `viridis`, `ggridges`, `scales`.
 
 ---
 
