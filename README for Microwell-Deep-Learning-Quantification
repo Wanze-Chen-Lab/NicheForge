@@ -1,0 +1,126 @@
+# Microwell-Deep-Learning-Quantification
+
+This repository contains a hybrid automated pipeline for the quantification of cells in microwells using Brightfield (BF) images.It integrates **Fiji (ImageJ)** for robust image pre/post-processing with **Cellpose 3.0** for deep learning segmentation. The workflow utilizes an inter-process communication mechanism (based on file flags) to seamlessly bridge the Java-based Fiji environment and the Python-based Cellpose environment.
+
+## Overview
+
+The pipeline operates by bridging Java (Fiji) and Python (Cellpose) environments to perform: 
+
+1. Microwell Localization: Robust geometric detection of microwells using Fiji. 
+2. Cell Segmentation: Deep learning-based segmentation of individual cells using Cellpose. 
+3. Spatial Mapping: Assigning cells to specific microwells for precise counting. 
+
+**Key features:**
+* Automated Microwell Detection using the Hough Circle Transform (Fiji). 
+* Deep Learning Segmentation of cells using Cellpose 3.0 (`cyto3` model) on Brightfield images. 
+* Cross-Platform Automation via file-based handshaking between Fiji and PowerShell. 
+* Precise Quantification by mapping segmented cell masks (Inner ROIs) to microwell boundaries (Outer ROIs).
+
+## Prerequisites
+
+### 1. Fiji (ImageJ)
+*   **Version:** v1.54p 
+*   **Required Update Sites:**
+    To ensure the macro runs correctly, enable these sites in `Help > Update... > Manage update sites`:
+    *   **IJPB-plugins** 
+    *   **UCB Vision Sciences** 
+    *   **Bio-Formats** 
+
+### 2. Python Environment (Conda)
+A Conda environment with Cellpose installed is required. GPU support is highly recommended for speed.
+
+```bash
+# 1. Create environment
+conda create --name cellpose python=3.8
+conda activate cellpose
+
+# 2. Install Cellpose
+pip install "cellpose[gui]"
+
+# 3. Install PyTorch with CUDA support (Adjust version based on your GPU)
+# Example for CUDA 11.8:
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+### 3. Operating System
+*   **Windows 10/11** is required because the automation script is written in **PowerShell** (`.ps1`).
+
+---
+
+## Repository Structure
+
+```text
+Microwell-Deep-Learning-Quantification/
+├── Fiji_Macro/
+│   └── DeepLearning_Pipeline.ijm   
+├── PowerShell_Script/
+│   └── Cellpose_segmentation.ps1
+Cellpose
+└── README.md                       
+```
+
+---
+
+## Usage Guide
+
+This pipeline requires running Fiji and PowerShell simultaneously. The file system serves as the bridge between them.
+
+### Step 1: Preparation
+1.  Organize your raw images into a single input folder (e.g., `D:\Data\Experiment_01\`).
+2.  **Copy** the PowerShell script (`Cellpose_segmentation_V0.3.ps1`) into **that same input folder**.
+    *   *Note: This is required because the script uses relative paths.*
+
+### Step 2: Start Fiji Macro
+1.  Open Fiji.
+2.  Drag and drop `DeepLearning_Pipeline.ijm` into Fiji and click **Run**.
+3.  **Configure Parameters:**
+    *   **BF_channel:** Select the channel index corresponding to Brightfield (e.g., "1").
+    *   **hough_threshold:** Threshold for microwell detection (Default: `0.65`).
+    *   **image_adjust:** Flip image vertically/horizontally if needed.
+4.  **Select Directory:** Choose the input folder from Step 1.
+5.  **Status:** The macro will process BF images, create an `Output_Results` folder, and then **PAUSE**.
+    *   *Log Message:* `Waiting for the cellpose segmentation...`
+
+### Step 3: Run Cellpose (via PowerShell)
+While Fiji is waiting, open **PowerShell** (or Anaconda Powershell Prompt):
+
+1.  Navigate to your data folder:
+    ```powershell
+    cd "D:\Data\Experiment_01\"
+    ```
+2.  Activate your Conda environment:
+    ```powershell
+    conda activate cellpose
+    ```
+3.  Run the script:
+    ```powershell
+    .\Cellpose_segmentation.ps1
+    ```
+
+**What happens now?**
+1.  The script detects the `Is_BF_Ready.csv` flag created by Fiji.
+2.  It launches Cellpose on the GPU to segment all images in `Output_Results/BF_Dir`.
+3.  Upon completion, it creates a `cellpose_done.txt` flag.
+
+### Step 4: Automatic Completion
+1.  Fiji detects `cellpose_done.txt`.
+2.  It automatically resumes processing:
+    *   Imports Cellpose masks (`_masks.png`).
+    *   Converts masks to ROIs.
+    *   Maps cells (Inner ROIs) to Microwells (Outer ROIs).
+    *   Saves the results.
+
+---
+
+## Troubleshooting
+
+*   **Fiji error: "Unknown command: Label Map to ROIs"**
+    *   **Fix:** You strictly need to install the `IJPB-plugins` (MorphoLibJ) update site in Fiji.
+*   **PowerShell error: "File not found"**
+    *   **Fix:** Ensure you are running the PowerShell command *from inside* the folder where your images and the `.ps1` script are located.
+*   **Cellpose error: "CUDA out of memory"**
+    *   **Fix:** Reduce the batch size in the `.ps1` script or ensure no other GPU-intensive applications are running.
+
+
+## Usage Note
+Please ensure file paths in the scripts are updated to match your local directory structure before running.
